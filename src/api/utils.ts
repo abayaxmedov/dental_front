@@ -2,11 +2,36 @@ import type { Appointment, Doctor, Payment, Review, Specialization } from '../ty
 
 const FALLBACK_API_BASE = 'http://localhost:8000';
 
-export const API_ORIGIN = (import.meta.env.VITE_API_ORIGIN || FALLBACK_API_BASE).replace(/\/$/, '');
+const inferApiOrigin = () => {
+    const configuredOrigin = import.meta.env.VITE_API_ORIGIN;
+    if (configuredOrigin) return configuredOrigin.replace(/\/$/, '');
+
+    if (typeof window !== 'undefined') {
+        const { protocol, hostname } = window.location;
+        const port = import.meta.env.VITE_API_PORT || '8000';
+        return `${protocol}//${hostname}:${port}`;
+    }
+
+    return FALLBACK_API_BASE;
+};
+
+export const API_ORIGIN = inferApiOrigin();
+
+const isLoopbackHost = (hostname: string) => ['localhost', '127.0.0.1', '0.0.0.0'].includes(hostname);
 
 export const toMediaUrl = (path?: string | null) => {
     if (!path) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        try {
+            const url = new URL(path);
+            if (!isLoopbackHost(url.hostname)) return path;
+            return `${API_ORIGIN}${url.pathname}${url.search}${url.hash}`;
+        } catch {
+            return path;
+        }
+    }
+
     return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
 };
 

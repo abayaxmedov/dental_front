@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Star, MapPin, Clock, ShieldCheck, ChevronRight, Award } from 'lucide-react';
 import doctorsService from '../api/services/doctorsService';
 import reviewsService from '../api/services/reviewsService';
 import { toMediaUrl } from '../api/utils';
+import ImageLightbox from '../components/ui/ImageLightbox';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import StarRating from '../components/ui/StarRating';
 import Header from '../components/layout/Header';
@@ -11,6 +13,7 @@ import Header from '../components/layout/Header';
 export default function DoctorDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [showPreview, setShowPreview] = useState(false);
 
     const { data: doctor, isLoading: doctorLoading } = useQuery({
         queryKey: ['doctor', Number(id)],
@@ -26,6 +29,7 @@ export default function DoctorDetailPage() {
     if (!doctor) return null;
 
     const fullName = `${doctor.user.first_name} ${doctor.user.last_name}`.trim() || doctor.user.username;
+    const profileImage = toMediaUrl(doctor.user.user_image);
 
     return (
         <div className="bg-[#F8FAFC] min-h-screen pb-32">
@@ -35,15 +39,21 @@ export default function DoctorDetailPage() {
             <div className="px-6 -mt-8 relative z-10">
                 <div className="bg-white rounded-[32px] shadow-xl p-6 border border-gray-50">
                     <div className="flex gap-4 mb-6">
-                        <div className="w-24 h-24 rounded-[30px] overflow-hidden bg-gray-100 flex-shrink-0 border-4 border-white shadow-lg">
-                            {doctor.user.user_image ? (
-                                <img src={toMediaUrl(doctor.user.user_image) ?? undefined} alt={fullName} className="w-full h-full object-cover" />
+                        <button
+                            type="button"
+                            onClick={() => profileImage && setShowPreview(true)}
+                            className="w-24 h-24 rounded-[30px] overflow-hidden bg-gray-100 flex-shrink-0 border-4 border-white shadow-lg p-0 border-white"
+                            style={{ cursor: profileImage ? 'zoom-in' : 'default' }}
+                            aria-label={profileImage ? `${fullName} rasmini kattalashtirish` : `${fullName} rasmi mavjud emas`}
+                        >
+                            {profileImage ? (
+                                <img src={profileImage} alt={fullName} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full gradient-primary flex items-center justify-center text-white text-3xl font-black">
                                     {fullName.charAt(0).toUpperCase()}
                                 </div>
                             )}
-                        </div>
+                        </button>
                         <div className="flex-1 py-1">
                             <div className="flex items-center gap-1 mb-1">
                                 <ShieldCheck size={14} className="text-blue-500" />
@@ -165,6 +175,13 @@ export default function DoctorDetailPage() {
                     </button>
                 </div>
             </div>
+            {showPreview && profileImage && (
+                <ImageLightbox
+                    src={profileImage}
+                    alt={fullName}
+                    onClose={() => setShowPreview(false)}
+                />
+            )}
         </div>
     );
 }
