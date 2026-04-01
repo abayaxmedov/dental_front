@@ -24,12 +24,12 @@ const appointmentsService = {
 
     create: async (data: CreateAppointmentData): Promise<Appointment> => {
         const response = await axiosInstance.post('/appointments/', data);
-        return normalizeAppointment(response.data);
+        return appointmentsService.getById(response.data.id);
     },
 
     cancel: async (id: number): Promise<Appointment> => {
-        const response = await axiosInstance.patch(`/appointments/${id}/`, { status: 'cancelled' });
-        return normalizeAppointment(response.data);
+        await axiosInstance.patch(`/appointments/${id}/`, { status: 'cancelled' });
+        return appointmentsService.getById(id);
     },
 };
 

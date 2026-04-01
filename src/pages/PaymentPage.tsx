@@ -1,24 +1,25 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { CreditCard, ShieldCheck, ChevronRight, Wallet, Smartphone } from 'lucide-react';
 import appointmentsService from '../api/services/appointmentsService';
-import paymentsService from '../api/services/paymentsService';
-import { toMediaUrl } from '../api/utils';
+import paymentsService, { type CreatePaymentData } from '../api/services/paymentsService';
+import { getApiErrorMessage, toMediaUrl } from '../api/utils';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Header from '../components/layout/Header';
+import type { PaymentMethod } from '../types';
 
 const PAYMENT_METHODS = [
     { id: 'PAYME', name: 'Payme', icon: <Smartphone className="text-blue-400" />, color: 'bg-blue-50' },
     { id: 'CLICK', name: 'Click', icon: <Smartphone className="text-blue-600" />, color: 'bg-blue-100' },
     { id: 'CARD', name: 'Karta orqali', icon: <CreditCard className="text-primary" />, color: 'bg-primary/10' },
     { id: 'CASH', name: 'Naqd (klinikada)', icon: <Wallet className="text-green-500" />, color: 'bg-green-50' },
-];
+] satisfies { id: PaymentMethod; name: string; icon: ReactNode; color: string }[];
 
 export default function PaymentPage() {
     const { appointmentId } = useParams<{ appointmentId: string }>();
     const navigate = useNavigate();
-    const [selectedMethod, setSelectedMethod] = useState('PAYME');
+    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('PAYME');
 
     const { data: appointment, isLoading } = useQuery({
         queryKey: ['appointment', Number(appointmentId)],
@@ -26,7 +27,7 @@ export default function PaymentPage() {
     });
 
     const payMutation = useMutation({
-        mutationFn: (data: any) => paymentsService.create(data),
+        mutationFn: (data: CreatePaymentData) => paymentsService.create(data),
         onSuccess: () => {
             navigate(`/booking-success/${appointmentId}`);
         },
@@ -37,8 +38,7 @@ export default function PaymentPage() {
 
         payMutation.mutate({
             appointment: appointment.id,
-            amount: Number(appointment.doctor_details.consultation_fee),
-            method: selectedMethod as 'PAYME' | 'CLICK' | 'CARD' | 'CASH',
+            method: selectedMethod,
             transaction_id: `TX-${Date.now()}`,
         });
     };
@@ -110,6 +110,14 @@ export default function PaymentPage() {
                         Sizning to'lovingiz 128-bit shifrlash bilan himoyalangan. To'lov amalga oshirilgandan so'ng sizga tasdiqlash xabari yuboriladi.
                     </p>
                 </div>
+
+                {payMutation.isError && (
+                    <div className="bg-red-50 p-4 rounded-2xl border border-red-100 mb-8">
+                        <p className="text-xs font-bold text-red-600">
+                            {getApiErrorMessage(payMutation.error, "To'lovni amalga oshirishda xato yuz berdi.")}
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50">

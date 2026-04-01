@@ -2,13 +2,24 @@ import axiosInstance from '../axios';
 import type { Payment, PaymentMethod } from '../../types';
 import { asArray, normalizePaymentMethod } from '../utils';
 
+export interface CreatePaymentData {
+    appointment: number;
+    method: PaymentMethod;
+    transaction_id?: string;
+}
+
 const paymentsService = {
-    create: async (data: { appointment: number; amount: number; method: PaymentMethod; transaction_id?: string }): Promise<Payment> => {
+    create: async (data: CreatePaymentData): Promise<Payment> => {
         const response = await axiosInstance.post('/payments/', {
-            ...data,
+            appointment: data.appointment,
             method: normalizePaymentMethod(data.method),
+            transaction_id: data.transaction_id,
         });
-        return response.data;
+        const payment = await paymentsService.getByAppointment(response.data.appointment);
+        if (!payment) {
+            throw new Error('To\'lov ma\'lumotini yuklab bo\'lmadi.');
+        }
+        return payment;
     },
 
     getByAppointment: async (appointmentId: number): Promise<Payment | null> => {

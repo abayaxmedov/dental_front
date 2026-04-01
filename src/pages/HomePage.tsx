@@ -6,6 +6,7 @@ import doctorsService from '../api/services/doctorsService';
 import DoctorCard from '../components/doctors/DoctorCard';
 import SpecializationCard from '../components/doctors/SpecializationCard';
 import { useAuthStore } from '../store/authStore';
+import type { Specialization } from '../types';
 
 export default function HomePage() {
     const navigate = useNavigate();
@@ -102,7 +103,7 @@ export default function HomePage() {
                     </div>
                 ) : (
                     <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
-                        {specializations?.map((spec: any) => (
+                        {specializations?.map((spec: Specialization) => (
                             <SpecializationCard
                                 key={spec.id}
                                 id={spec.id}

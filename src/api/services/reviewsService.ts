@@ -8,7 +8,7 @@ const reviewsService = {
         return asArray<Review>(response.data).map(normalizeReview);
     },
 
-    create: async (data: { doctor: number; patient: number; rating: number; comment: string }): Promise<Review> => {
+    create: async (data: { doctor: number; rating: number; comment: string }): Promise<Review> => {
         const response = await axiosInstance.post('/reviews/', data);
         return normalizeReview(response.data);
     },

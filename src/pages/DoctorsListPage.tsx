@@ -6,6 +6,7 @@ import doctorsService from '../api/services/doctorsService';
 import DoctorCard from '../components/doctors/DoctorCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Header from '../components/layout/Header';
+import type { Specialization } from '../types';
 
 export default function DoctorsListPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -93,7 +94,7 @@ export default function DoctorsListPage() {
                                     >
                                         Barchasi
                                     </button>
-                                    {specializations?.map((spec: any) => (
+                                    {specializations?.map((spec: Specialization) => (
                                         <button
                                             key={spec.id}
                                             onClick={() => updateFilters('specialization', String(spec.id))}

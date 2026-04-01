@@ -1,3 +1,4 @@
+import axios from 'axios';
 import type { Appointment, Doctor, Payment, Review, Specialization } from '../types';
 
 const FALLBACK_API_BASE = 'http://localhost:8000';
@@ -72,3 +73,20 @@ export const normalizeReview = (review: Review): Review => ({
 });
 
 export const normalizePaymentMethod = (value: string) => value.toUpperCase() as Payment['method'];
+
+const collectMessages = (value: unknown): string[] => {
+    if (!value) return [];
+    if (typeof value === 'string') return [value];
+    if (Array.isArray(value)) return value.flatMap(collectMessages);
+    if (typeof value === 'object') return Object.values(value).flatMap(collectMessages);
+    return [];
+};
+
+export const getApiErrorMessage = (error: unknown, fallback = 'Xato yuz berdi.'): string => {
+    if (!axios.isAxiosError(error)) {
+        return fallback;
+    }
+
+    const messages = collectMessages(error.response?.data);
+    return messages[0] || fallback;
+};

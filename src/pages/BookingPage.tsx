@@ -5,7 +5,7 @@ import { ChevronRight, AlertCircle, Info } from 'lucide-react';
 import doctorsService from '../api/services/doctorsService';
 import appointmentsService from '../api/services/appointmentsService';
 import patientsService from '../api/services/patientsService';
-import { toMediaUrl } from '../api/utils';
+import { getApiErrorMessage, toMediaUrl } from '../api/utils';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Header from '../components/layout/Header';
 import { useAuthStore } from '../store/authStore';
@@ -89,9 +89,8 @@ export default function BookingPage() {
                 notes,
             });
             navigate(`/payment/${appointment.id}`);
-        } catch (e: any) {
-            const msg = e.response?.data ? Object.values(e.response.data).flat()[0] as string : "Bron qilishda xato.";
-            setError(msg);
+        } catch (error: unknown) {
+            setError(getApiErrorMessage(error, "Bron qilishda xato."));
         } finally {
             setLoading(false);
         }
