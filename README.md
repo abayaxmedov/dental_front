@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# Dental Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for the dental booking app.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Install dependencies:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Copy envs:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
 ```
+
+3. Start the frontend:
+
+```bash
+npm run dev
+```
+
+Vite now binds to `0.0.0.0:5173`, so if your server IP is `52.55.79.225`, the login page opens at:
+
+```text
+http://52.55.79.225:5173/login
+```
+
+`VITE_DEV_API_TARGET` controls which backend the dev server proxies to.
+
+## Environment variables
+
+`VITE_API_BASE_URL`
+Frontend API base URL used at build time. Examples:
+- `/api` for same-origin reverse proxy
+- `https://api.example.com/api` for separate backend deployment
+
+`VITE_API_ORIGIN`
+Optional explicit backend origin for media URLs. If empty, it is inferred from `VITE_API_BASE_URL`.
+
+`VITE_DEV_API_TARGET`
+Backend target for Vite dev proxy.
+
+`APP_API_BASE_URL`
+Optional runtime override for the nginx container. Use this when frontend and backend are deployed separately.
+
+`APP_API_ORIGIN`
+Optional runtime override for media origin inside the nginx container.
+
+`NGINX_API_UPSTREAM`
+Optional nginx proxy upstream. Default is `http://backend:8000` to preserve docker-compose compatibility.
+
+## Production
+
+For separate frontend/backend deployment, build and run the frontend with an absolute backend URL:
+
+```bash
+docker build \
+  --build-arg VITE_API_BASE_URL=https://api.example.com/api \
+  --build-arg VITE_API_ORIGIN=https://api.example.com \
+  -t dental-frontend .
+
+docker run -d \
+  -p 80:80 \
+  -e APP_API_BASE_URL=https://api.example.com/api \
+  -e APP_API_ORIGIN=https://api.example.com \
+  dental-frontend
+```
+
+If you still want same-origin proxying through nginx, keep `APP_API_BASE_URL=/api` and point `NGINX_API_UPSTREAM` to your backend.

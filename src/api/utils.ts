@@ -1,25 +1,6 @@
 import axios from 'axios';
 import type { Appointment, Doctor, Payment, Review, Specialization } from '../types';
-
-const FALLBACK_API_BASE = 'http://localhost:8000';
-
-const inferApiOrigin = () => {
-    const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const configuredOrigin = import.meta.env.VITE_API_ORIGIN;
-    if (configuredOrigin) return configuredOrigin.replace(/\/$/, '');
-
-    if (configuredBaseUrl?.startsWith('http://') || configuredBaseUrl?.startsWith('https://')) {
-        return new URL(configuredBaseUrl).origin;
-    }
-
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
-    }
-
-    return FALLBACK_API_BASE;
-};
-
-export const API_ORIGIN = inferApiOrigin();
+import { API_ORIGIN } from '../config/runtime';
 
 const isLoopbackHost = (hostname: string) => ['localhost', '127.0.0.1', '0.0.0.0'].includes(hostname);
 
