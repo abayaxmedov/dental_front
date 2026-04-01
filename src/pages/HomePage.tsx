@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Bell, SlidersHorizontal } from 'lucide-react';
+import { Search, Bell, SlidersHorizontal, LayoutDashboard } from 'lucide-react';
 import doctorsService from '../api/services/doctorsService';
+import notificationsService from '../api/services/notificationsService';
 import DoctorCard from '../components/doctors/DoctorCard';
 import SpecializationCard from '../components/doctors/SpecializationCard';
 import { useAuthStore } from '../store/authStore';
@@ -21,6 +22,13 @@ export default function HomePage() {
     const { data: topDoctors, isLoading: doctorsLoading } = useQuery({
         queryKey: ['top-doctors'],
         queryFn: () => doctorsService.getAll({ ordering: '-rating' }),
+    });
+    const { data: unreadNotifications = [] } = useQuery({
+        queryKey: ['notifications', 'unread-count'],
+        queryFn: () => notificationsService.getAll({ is_read: false }),
+        enabled: !!user,
+        refetchInterval: 5000,
+        refetchIntervalInBackground: true,
     });
 
     const handleSearch = (e: React.FormEvent) => {
@@ -44,9 +52,16 @@ export default function HomePage() {
                             {user ? `${user.first_name || user.username}` : 'Mehmon'}
                         </h1>
                     </div>
-                    <button className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white relative">
+                    <button
+                        onClick={() => navigate('/notifications')}
+                        className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white relative"
+                    >
                         <Bell size={22} />
-                        <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 border-2 border-primary rounded-full"></span>
+                        {unreadNotifications.length > 0 && (
+                            <span className="absolute top-2 right-2 min-w-5 h-5 px-1 bg-red-500 border-2 border-primary rounded-full flex items-center justify-center text-[10px] font-black">
+                                {Math.min(unreadNotifications.length, 9)}
+                            </span>
+                        )}
                     </button>
                 </div>
 
@@ -89,6 +104,26 @@ export default function HomePage() {
                     </div>
                 </div>
             </div>
+
+            {user?.is_staff && (
+                <div className="px-6 mt-6">
+                    <button
+                        onClick={() => navigate('/admin-panel')}
+                        className="w-full bg-white rounded-[28px] p-5 shadow-lg border border-emerald-100 flex items-center justify-between"
+                    >
+                        <div className="flex items-center gap-4 text-left">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <LayoutDashboard size={22} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-gray-900">Admin panelga o'tish</p>
+                                <p className="text-xs font-bold text-gray-400">Yangi bronlar va notificationlarni ko'ring</p>
+                            </div>
+                        </div>
+                        <span className="text-emerald-600 font-black text-xs uppercase tracking-widest">Ochish</span>
+                    </button>
+                </div>
+            )}
 
             {/* Specializations */}
             <div className="mt-10 px-6">

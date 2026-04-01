@@ -16,6 +16,8 @@ import PaymentPage from './pages/PaymentPage';
 import BookingSuccessPage from './pages/BookingSuccessPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
+import AdminPanelPage from './pages/AdminPanelPage';
 
 // Store
 import { useAuthStore } from './store/authStore';
@@ -29,7 +31,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const NO_NAV_PREFIXES = ['/login', '/register', '/booking', '/booking-success', '/payment'];
+const NO_NAV_PREFIXES = ['/login', '/register', '/booking', '/booking-success', '/payment', '/admin-panel'];
 
 function AppContent() {
   const { initialize } = useAuthStore();
@@ -56,6 +58,8 @@ function AppContent() {
         <Route path="/payment/:appointmentId" element={<PaymentPage />} />
         <Route path="/booking-success/:appointmentId" element={<BookingSuccessPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin-panel" element={<AdminPanelPage />} />
         <Route path="/profile" element={<ProfilePage />} />
 
         {/* Fallback */}

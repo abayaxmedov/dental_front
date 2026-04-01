@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Phone, Mail, LogOut, ChevronRight, Calendar, Shield, Settings, Camera } from 'lucide-react';
+import { User, Phone, Mail, LogOut, ChevronRight, Calendar, Shield, Settings, Camera, Bell, LayoutDashboard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { toMediaUrl } from '../api/utils';
 import Header from '../components/layout/Header';
@@ -26,6 +26,10 @@ export default function ProfilePage() {
 
     const menuItems = [
         { icon: <Calendar size={18} className="text-primary" />, label: 'Mening qabullarim', action: () => navigate('/appointments'), color: 'bg-primary/10' },
+        { icon: <Bell size={18} className="text-amber-500" />, label: 'Bildirishnomalar', action: () => navigate('/notifications'), color: 'bg-amber-50' },
+        ...(user.is_staff
+            ? [{ icon: <LayoutDashboard size={18} className="text-emerald-500" />, label: 'Admin panel', action: () => navigate('/admin-panel'), color: 'bg-emerald-50' }]
+            : []),
         { icon: <Shield size={18} className="text-indigo-500" />, label: 'Maxfiylik siyosati', action: () => { }, color: 'bg-indigo-50' },
         { icon: <Settings size={18} className="text-gray-500" />, label: 'Sozlamalar', action: () => { }, color: 'bg-gray-100' },
     ];

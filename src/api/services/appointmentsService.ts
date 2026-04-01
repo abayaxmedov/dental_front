@@ -4,15 +4,15 @@ import { asArray, normalizeAppointment } from '../utils';
 
 export interface CreateAppointmentData {
     doctor: number;
-    date: string;
-    time: string;
     notes?: string;
 }
 
 const appointmentsService = {
-    getAll: async (filters?: { status?: AppointmentStatus }): Promise<Appointment[]> => {
+    getAll: async (filters?: { status?: AppointmentStatus; search?: string; ordering?: string }): Promise<Appointment[]> => {
         const params: Record<string, string> = {};
         if (filters?.status) params.status = filters.status;
+        if (filters?.search) params.search = filters.search;
+        if (filters?.ordering) params.ordering = filters.ordering;
         const response = await axiosInstance.get('/appointments/', { params });
         return asArray<Appointment>(response.data).map(normalizeAppointment);
     },
@@ -29,6 +29,11 @@ const appointmentsService = {
 
     cancel: async (id: number): Promise<Appointment> => {
         await axiosInstance.patch(`/appointments/${id}/`, { status: 'cancelled' });
+        return appointmentsService.getById(id);
+    },
+
+    updateStatus: async (id: number, status: AppointmentStatus): Promise<Appointment> => {
+        await axiosInstance.patch(`/appointments/${id}/`, { status });
         return appointmentsService.getById(id);
     },
 };

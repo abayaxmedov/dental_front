@@ -4,13 +4,16 @@ import type { Appointment, Doctor, Payment, Review, Specialization } from '../ty
 const FALLBACK_API_BASE = 'http://localhost:8000';
 
 const inferApiOrigin = () => {
+    const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const configuredOrigin = import.meta.env.VITE_API_ORIGIN;
     if (configuredOrigin) return configuredOrigin.replace(/\/$/, '');
 
+    if (configuredBaseUrl?.startsWith('http://') || configuredBaseUrl?.startsWith('https://')) {
+        return new URL(configuredBaseUrl).origin;
+    }
+
     if (typeof window !== 'undefined') {
-        const { protocol, hostname } = window.location;
-        const port = import.meta.env.VITE_API_PORT || '8000';
-        return `${protocol}//${hostname}:${port}`;
+        return window.location.origin;
     }
 
     return FALLBACK_API_BASE;
@@ -65,6 +68,8 @@ export const normalizeAppointment = (appointment: Appointment): Appointment => (
     patient: typeof appointment.patient === 'number'
         ? appointment.patient
         : ((appointment.patient as unknown as { id?: number })?.id ?? 0),
+    patient_name: appointment.patient_name || appointment.patient_details?.user?.first_name || 'Bemor',
+    patient_phone: appointment.patient_phone || appointment.patient_details?.user?.phone_number || null,
 });
 
 export const normalizeReview = (review: Review): Review => ({

@@ -10,7 +10,7 @@ import type { AppointmentStatus } from '../types';
 
 const TABS: { label: string; status: AppointmentStatus | 'all' }[] = [
     { label: 'Barchasi', status: 'all' },
-    { label: 'Kutilmoqda', status: 'upcoming' },
+    { label: 'Tasdiqlangan', status: 'confirmed' },
     { label: 'Bajarildi', status: 'completed' },
     { label: 'Bekor', status: 'cancelled' },
 ];
@@ -24,9 +24,11 @@ export default function AppointmentsPage() {
     const { data: appointments = [], isLoading } = useQuery({
         queryKey: ['appointments', activeTab],
         queryFn: () => activeTab === 'all'
-            ? appointmentsService.getAll()
-            : appointmentsService.getAll({ status: activeTab as AppointmentStatus }),
+            ? appointmentsService.getAll({ ordering: '-created_at' })
+            : appointmentsService.getAll({ status: activeTab as AppointmentStatus, ordering: '-created_at' }),
         enabled: isAuthenticated,
+        refetchInterval: 15000,
+        refetchIntervalInBackground: true,
     });
 
     const cancelMutation = useMutation({

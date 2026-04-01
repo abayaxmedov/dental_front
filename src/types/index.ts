@@ -8,6 +8,7 @@ export interface User {
     first_name: string;
     last_name: string;
     user_image: string | null;
+    is_staff: boolean;
 }
 
 export interface AuthTokens {
@@ -50,7 +51,7 @@ export interface Patient {
     image: string | null;
 }
 
-export type AppointmentStatus = 'upcoming' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'confirmed' | 'completed' | 'cancelled';
 
 export interface Appointment {
     id: number;
@@ -59,9 +60,11 @@ export interface Appointment {
     doctor_details: Doctor;
     patient_details: Patient | null;
     date: string;
-    time: string;
+    time: string | null;
     status: AppointmentStatus;
     notes: string;
+    patient_name: string;
+    patient_phone: string | null;
     created_at: string;
 }
 
@@ -86,6 +89,23 @@ export interface Payment {
     transaction_id: string | null;
     status: PaymentStatus;
     created_at: string;
+}
+
+export type NotificationKind =
+    | 'booking_created'
+    | 'booking_cancelled'
+    | 'booking_completed'
+    | 'booking_updated';
+
+export interface Notification {
+    id: number;
+    title: string;
+    message: string;
+    kind: NotificationKind;
+    is_read: boolean;
+    appointment_id: number | null;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface PaginatedResponse<T> {

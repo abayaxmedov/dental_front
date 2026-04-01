@@ -74,7 +74,9 @@ export default function PaymentPage() {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-bold text-gray-400">Sana va vaqt</span>
-                            <span className="text-sm font-black text-gray-900">{appointment.date} • {appointment.time.slice(0, 5)}</span>
+                            <span className="text-sm font-black text-gray-900">
+                                {appointment.date} • {appointment.time ? appointment.time.slice(0, 5) : "Keyin kelishiladi"}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center pt-2">
                             <span className="text-base font-black text-gray-900">Jami to'lov</span>

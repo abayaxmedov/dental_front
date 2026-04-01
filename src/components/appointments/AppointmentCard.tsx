@@ -9,7 +9,7 @@ interface Props {
 }
 
 const statusLabel: Record<string, string> = {
-    upcoming: 'Kutilmoqda',
+    confirmed: 'Tasdiqlangan',
     completed: 'Bajarildi',
     cancelled: 'Bekor qilindi',
 };
@@ -57,7 +57,9 @@ export default function AppointmentCard({ appointment, onCancel }: Props) {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Clock size={13} color="#9CA3AF" />
-                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{appointment.time.slice(0, 5)}</span>
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                {appointment.time ? appointment.time.slice(0, 5) : "Vaqt administrator bilan belgilanadi"}
+                            </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <MapPin size={13} color="#9CA3AF" />
@@ -68,7 +70,7 @@ export default function AppointmentCard({ appointment, onCancel }: Props) {
             </div>
 
             {/* Action buttons */}
-            {appointment.status === 'upcoming' && (
+            {appointment.status === 'confirmed' && (
                 <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                     <button
                         onClick={() => navigate(`/doctors/${doctor.id}`)}

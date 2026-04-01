@@ -4,40 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, AlertCircle, Info } from 'lucide-react';
 import doctorsService from '../api/services/doctorsService';
 import appointmentsService from '../api/services/appointmentsService';
-import patientsService from '../api/services/patientsService';
 import { getApiErrorMessage, toMediaUrl } from '../api/utils';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Header from '../components/layout/Header';
 import { useAuthStore } from '../store/authStore';
 
-const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
-
-const MONTH_NAMES = [
-    'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
-    'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
-];
-
-const DAY_NAMES = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
-
-function buildCalendar(year: number, month: number) {
-    const firstDay = new Date(year, month, 1).getDay();
-    const offset = firstDay === 0 ? 6 : firstDay - 1;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days: (number | null)[] = Array(offset).fill(null);
-    for (let d = 1; d <= daysInMonth; d++) days.push(d);
-    return days;
-}
-
 export default function BookingPage() {
     const { doctorId } = useParams<{ doctorId: string }>();
     const navigate = useNavigate();
     const { user } = useAuthStore();
-
-    const today = new Date();
-    const [calYear, setCalYear] = useState(today.getFullYear());
-    const [calMonth, setCalMonth] = useState(today.getMonth());
-    const [selectedDay, setSelectedDay] = useState<number | null>(null);
-    const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -46,49 +21,18 @@ export default function BookingPage() {
         queryKey: ['doctor', Number(doctorId)],
         queryFn: () => doctorsService.getById(Number(doctorId)),
     });
-    const { data: patientProfile } = useQuery({
-        queryKey: ['patient-profile'],
-        queryFn: () => patientsService.getCurrent(),
-        enabled: !!user,
-    });
-
-    const calDays = buildCalendar(calYear, calMonth);
-
-    const prevMonth = () => {
-        if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1); }
-        else setCalMonth(calMonth - 1);
-        setSelectedDay(null);
-    };
-    const nextMonth = () => {
-        if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1); }
-        else setCalMonth(calMonth + 1);
-        setSelectedDay(null);
-    };
-
-    const isPast = (day: number) => {
-        const d = new Date(calYear, calMonth, day);
-        d.setHours(0, 0, 0, 0);
-        const now = new Date(); now.setHours(0, 0, 0, 0);
-        return d < now;
-    };
 
     const handleBook = async () => {
-        if (!user || !selectedDay || !selectedTime) return;
+        if (!user) return;
 
         setError('');
         setLoading(true);
         try {
-            if (!patientProfile) {
-                throw new Error("Patient profile topilmadi. Backend foydalanuvchi uchun patient profile yaratishi kerak.");
-            }
-            const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
             const appointment = await appointmentsService.create({
                 doctor: Number(doctorId),
-                date: dateStr,
-                time: `${selectedTime}:00`,
                 notes,
             });
-            navigate(`/payment/${appointment.id}`);
+            navigate(`/booking-success/${appointment.id}`);
         } catch (error: unknown) {
             setError(getApiErrorMessage(error, "Bron qilishda xato."));
         } finally {
@@ -100,7 +44,7 @@ export default function BookingPage() {
     if (!doctor) return null;
 
     const fullName = `${doctor.user.first_name} ${doctor.user.last_name}`.trim() || doctor.user.username;
-    const canContinue = selectedDay && selectedTime && user && patientProfile;
+    const canContinue = !!user;
 
     return (
         <div className="bg-[#F8FAFC] min-h-screen pb-32">
@@ -128,63 +72,22 @@ export default function BookingPage() {
                     </div>
                 </div>
 
-                {/* Calendar Widget */}
-                <div className="card border-none bg-white p-6 shadow-xl mb-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h4 className="font-black text-gray-950 uppercase tracking-widest text-xs">Sana tanlang</h4>
-                        <div className="flex items-center gap-1">
-                            <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400">
-                                <ChevronRight size={18} className="rotate-180" />
-                            </button>
-                            <span className="text-sm font-black text-gray-900 mx-2">{MONTH_NAMES[calMonth]} {calYear}</span>
-                            <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400">
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                        {DAY_NAMES.map(d => <div key={d} className="text-[10px] font-black text-gray-300 text-center uppercase">{d}</div>)}
-                    </div>
-                    <div className="grid grid-cols-7 gap-2">
-                        {calDays.map((day, i) => {
-                            if (!day) return <div key={i}></div>;
-                            const past = isPast(day);
-                            const isSelected = selectedDay === day;
-                            return (
-                                <button
-                                    key={i}
-                                    disabled={past}
-                                    onClick={() => setSelectedDay(day)}
-                                    className={`h-11 rounded-xl text-xs font-black transition-all ${isSelected ? 'gradient-primary text-white shadow-lg' : past ? 'text-gray-200 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50 border border-gray-100'}`}
-                                >
-                                    {day}
-                                </button>
-                            );
-                        })}
+                <div className="bg-white rounded-[32px] shadow-xl p-6 border border-gray-50 mb-6">
+                    <h4 className="font-black text-gray-950 uppercase tracking-widest text-xs mb-4">Qanday ishlaydi</h4>
+                    <div className="space-y-4">
+                        {[
+                            "Siz faqat bron qilish tugmasini bosasiz.",
+                            "So'rovingiz darhol admin panelga tushadi.",
+                            "Administrator siz bilan bog'lanib vaqtni alohida kelishadi.",
+                        ].map((item) => (
+                            <div key={item} className="flex items-start gap-3">
+                                <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-black">✓</div>
+                                <p className="text-sm font-bold text-gray-600">{item}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* Time Widget */}
-                <div className="mb-6">
-                    <h4 className="font-black text-gray-950 uppercase tracking-widest text-xs mb-4 ml-2">Vaqt tanlang</h4>
-                    <div className="grid grid-cols-4 gap-3">
-                        {TIME_SLOTS.map(time => {
-                            const isSelected = selectedTime === time;
-                            return (
-                                <button
-                                    key={time}
-                                    onClick={() => setSelectedTime(time)}
-                                    className={`py-3 rounded-2xl text-[13px] font-black transition-all border-2 ${isSelected ? 'border-primary bg-white text-primary shadow-lg' : 'border-transparent bg-white text-gray-500 shadow-sm'}`}
-                                >
-                                    {time}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Note widget */}
                 <div className="mb-8">
                     <h4 className="font-black text-gray-950 uppercase tracking-widest text-xs mb-4 ml-2">Eslatma qoldiring</h4>
                     <textarea
@@ -205,17 +108,9 @@ export default function BookingPage() {
                 <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10 mb-8">
                     <Info className="text-primary flex-shrink-0" size={20} />
                     <p className="text-[11px] font-bold text-primary/70 leading-relaxed">
-                        Keyingi bosqichda siz to'lov usulini tanlaysiz va bron qilishni yakunlaysiz.
+                        Bron yuborilgach u avtomatik qabul qilinadi va admin panelda darhol ko'rinadi.
                     </p>
                 </div>
-                {user && !patientProfile && (
-                    <div className="bg-amber-50 p-4 rounded-2xl flex items-center gap-3 border border-amber-100 mb-8">
-                        <AlertCircle size={20} className="text-amber-500" />
-                        <p className="text-xs font-bold text-amber-700">
-                            Patient profile topilmadi. Backendda ushbu foydalanuvchi uchun patient profile yaratilmaguncha bron ishlamaydi.
-                        </p>
-                    </div>
-                )}
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50">
@@ -229,7 +124,7 @@ export default function BookingPage() {
                             className="w-full btn-primary py-4 rounded-2xl flex items-center justify-center gap-2 group disabled:opacity-50 shadow-xl"
                         >
                             <span className="font-black text-sm uppercase tracking-wider">
-                                {loading ? 'Yuborilmoqda...' : 'Davom etish'}
+                                {loading ? 'Yuborilmoqda...' : 'Bron qilish'}
                             </span>
                             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </button>

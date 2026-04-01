@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle, Calendar, Clock, MapPin, Home, PartyPopper } from 'lucide-react';
+import { CheckCircle, Calendar, ShieldCheck, MapPin, Home, PartyPopper } from 'lucide-react';
 import appointmentsService from '../api/services/appointmentsService';
 
 const MONTH_NAMES = [
@@ -48,7 +48,7 @@ export default function BookingSuccessPage() {
 
             <h1 className="text-3xl font-black text-gray-950 mb-3 text-center">Tayyor! 🎉</h1>
             <p className="text-gray-400 font-bold text-sm text-center mb-10 max-w-[280px]">
-                Qabulingiz muvaffaqiyatli bron qilindi. Shifokor sizni kutmoqda!
+                Bron so'rovingiz muvaffaqiyatli qabul qilindi. Administrator siz bilan bog'lanadi.
             </p>
 
             {/* Details Card */}
@@ -76,16 +76,16 @@ export default function BookingSuccessPage() {
                         <div className="bg-gray-50 rounded-3xl p-4">
                             <div className="flex items-center gap-2 mb-1.5">
                                 <Calendar size={14} className="text-primary" />
-                                <span className="text-[10px] font-black text-gray-400 uppercase">Sana</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase">Bron sanasi</span>
                             </div>
                             <p className="text-sm font-black text-gray-900">{formattedDate}</p>
                         </div>
                         <div className="bg-gray-50 rounded-3xl p-4">
                             <div className="flex items-center gap-2 mb-1.5">
-                                <Clock size={14} className="text-primary" />
-                                <span className="text-[10px] font-black text-gray-400 uppercase">Vaqt</span>
+                                <ShieldCheck size={14} className="text-primary" />
+                                <span className="text-[10px] font-black text-gray-400 uppercase">Holat</span>
                             </div>
-                            <p className="text-sm font-black text-gray-900">{appointment.time.slice(0, 5)}</p>
+                            <p className="text-sm font-black text-gray-900">Admin bilan kelishiladi</p>
                         </div>
                     </div>
                 </div>
