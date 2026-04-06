@@ -35,7 +35,7 @@ http://52.55.79.225:5173/login
 `VITE_API_BASE_URL`
 Frontend API base URL used at build time. Examples:
 - `/api` for same-origin reverse proxy
-- `https://api.example.com/api` for separate backend deployment
+- `http://api.example.com/api` for separate backend deployment
 
 `VITE_API_ORIGIN`
 Optional explicit backend origin for media URLs. If empty, it is inferred from `VITE_API_BASE_URL`.
@@ -54,18 +54,32 @@ Optional nginx proxy upstream. Default is `http://backend:8000` to preserve dock
 
 ## Production
 
+For an HTTP server deployment where frontend and backend share one domain/IP through nginx reverse proxy, keep these values:
+
+```env
+VITE_API_BASE_URL=/api
+APP_API_BASE_URL=/api
+NGINX_API_UPSTREAM=http://backend:8000
+```
+
+Then start the whole stack from the project root:
+
+```bash
+docker compose --env-file dental_backend/.env up -d --build
+```
+
 For separate frontend/backend deployment, build and run the frontend with an absolute backend URL:
 
 ```bash
 docker build \
-  --build-arg VITE_API_BASE_URL=https://api.example.com/api \
-  --build-arg VITE_API_ORIGIN=https://api.example.com \
+  --build-arg VITE_API_BASE_URL=http://api.example.com/api \
+  --build-arg VITE_API_ORIGIN=http://api.example.com \
   -t dental-frontend .
 
 docker run -d \
   -p 80:80 \
-  -e APP_API_BASE_URL=https://api.example.com/api \
-  -e APP_API_ORIGIN=https://api.example.com \
+  -e APP_API_BASE_URL=http://api.example.com/api \
+  -e APP_API_ORIGIN=http://api.example.com \
   dental-frontend
 ```
 
